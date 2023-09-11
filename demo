@@ -1,0 +1,130 @@
+param applicationGateways_demoappgw_name string = 'demoappgw'
+param virtualNetworks_demovnet_externalid string = '/subscriptions/edfb6d9b-dcf3-4eaa-94c3-02b4008ab6b4/resourceGroups/centralindia/providers/Microsoft.Network/virtualNetworks/demovnet'
+param publicIPAddresses_demopublicip_externalid string = '/subscriptions/edfb6d9b-dcf3-4eaa-94c3-02b4008ab6b4/resourceGroups/centralindia/providers/Microsoft.Network/publicIPAddresses/demopublicip'
+
+resource applicationGateways_demoappgw_name_resource 'Microsoft.Network/applicationGateways@2023-04-01' = {
+  name: applicationGateways_demoappgw_name
+  location: 'southindia'
+  properties: {
+    sku: {
+      name: 'Standard_v2'
+      tier: 'Standard_v2'
+    }
+    gatewayIPConfigurations: [
+      {
+        name: 'appGatewayIpConfig'
+        id: '${applicationGateways_demoappgw_name_resource.id}/gatewayIPConfigurations/appGatewayIpConfig'
+        properties: {
+          subnet: {
+            id: '${virtualNetworks_demovnet_externalid}/subnets/gateway'
+          }
+        }
+      }
+    ]
+    sslCertificates: []
+    trustedRootCertificates: []
+    trustedClientCertificates: []
+    sslProfiles: []
+    frontendIPConfigurations: [
+      {
+        name: 'appGwPublicFrontendIpIPv4'
+        id: '${applicationGateways_demoappgw_name_resource.id}/frontendIPConfigurations/appGwPublicFrontendIpIPv4'
+        properties: {
+          privateIPAllocationMethod: 'Dynamic'
+          publicIPAddress: {
+            id: publicIPAddresses_demopublicip_externalid
+          }
+        }
+      }
+    ]
+    frontendPorts: [
+      {
+        name: 'port_80'
+        id: '${applicationGateways_demoappgw_name_resource.id}/frontendPorts/port_80'
+        properties: {
+          port: 80
+        }
+      }
+    ]
+    backendAddressPools: [
+      {
+        name: 'demobackpool'
+        id: '${applicationGateways_demoappgw_name_resource.id}/backendAddressPools/demobackpool'
+        properties: {
+          backendAddresses: []
+        }
+      }
+      {
+        name: 'demobacktarget'
+        id: '${applicationGateways_demoappgw_name_resource.id}/backendAddressPools/demobacktarget'
+        properties: {
+          backendAddresses: []
+        }
+      }
+    ]
+    loadDistributionPolicies: []
+    backendHttpSettingsCollection: [
+      {
+        name: 'demobacksetting'
+        id: '${applicationGateways_demoappgw_name_resource.id}/backendHttpSettingsCollection/demobacksetting'
+        properties: {
+          port: 80
+          protocol: 'Http'
+          cookieBasedAffinity: 'Disabled'
+          pickHostNameFromBackendAddress: false
+          requestTimeout: 20
+        }
+      }
+    ]
+    backendSettingsCollection: []
+    httpListeners: [
+      {
+        name: 'demolistener'
+        id: '${applicationGateways_demoappgw_name_resource.id}/httpListeners/demolistener'
+        properties: {
+          frontendIPConfiguration: {
+            id: '${applicationGateways_demoappgw_name_resource.id}/frontendIPConfigurations/appGwPublicFrontendIpIPv4'
+          }
+          frontendPort: {
+            id: '${applicationGateways_demoappgw_name_resource.id}/frontendPorts/port_80'
+          }
+          protocol: 'Http'
+          hostNames: []
+          requireServerNameIndication: false
+          customErrorConfigurations: []
+        }
+      }
+    ]
+    listeners: []
+    urlPathMaps: []
+    requestRoutingRules: [
+      {
+        name: 'demoroutingrule'
+        id: '${applicationGateways_demoappgw_name_resource.id}/requestRoutingRules/demoroutingrule'
+        properties: {
+          ruleType: 'Basic'
+          priority: 100
+          httpListener: {
+            id: '${applicationGateways_demoappgw_name_resource.id}/httpListeners/demolistener'
+          }
+          backendAddressPool: {
+            id: '${applicationGateways_demoappgw_name_resource.id}/backendAddressPools/demobacktarget'
+          }
+          backendHttpSettings: {
+            id: '${applicationGateways_demoappgw_name_resource.id}/backendHttpSettingsCollection/demobacksetting'
+          }
+        }
+      }
+    ]
+    routingRules: []
+    probes: []
+    rewriteRuleSets: []
+    redirectConfigurations: []
+    privateLinkConfigurations: []
+    enableHttp2: true
+    autoscaleConfiguration: {
+      minCapacity: 0
+      maxCapacity: 10
+    }
+  }
+}
